@@ -29,6 +29,18 @@ The bundled data is **fictional**. Use anonymised data only if you load your own
    Use `python -m streamlit` rather than plain `streamlit`: it works even when Windows says "streamlit is not recognised".
    Stop the app with Ctrl+C in the terminal.
 
+**To use your own data, switch uploads on first.** Uploading CSV files is off by default, so a copy of the app on the
+web shows the fictional sample data only. On your own computer, run these two lines instead of the last one above
+(in the same terminal window):
+
+```powershell
+$env:DESK_PLANNER_ALLOW_UPLOAD = "1"
+python -m streamlit run app.py
+```
+
+The setting lasts only for that terminal window. A new terminal window starts with uploads off again, so repeat the first
+line each time. The sidebar then shows a "Data source" choice with "Upload my own CSV files".
+
 If port 8501 is busy: `python -m streamlit run app.py --server.port 8502`
 
 Later runs only need steps 1 (open the folder), the activate line, and step 3.
@@ -75,5 +87,6 @@ The approved headcount is the same on every row of a department. Floor names mus
 
 ## Privacy
 
-If the app runs at a public web address (for example on Streamlit Community Cloud), anything uploaded is processed on
-the machine hosting it. Keep that version on fictional data. For real work data, run the app on your own computer.
+The public version has uploads switched off, so it can only show the fictional sample data. Do not switch uploads on
+(`DESK_PLANNER_ALLOW_UPLOAD`) for an app that runs at a public web address, because uploaded files are then processed on
+the machine hosting it (held in memory, per Streamlit's docs). For real work data, run the app on your own computer.

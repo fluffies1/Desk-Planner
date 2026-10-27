@@ -6,6 +6,7 @@ The calculations live in planner.py; this file is only the screen.
 from __future__ import annotations
 
 import hashlib
+import os
 from html import escape
 from pathlib import Path
 
@@ -19,6 +20,12 @@ st.set_page_config(page_title="Desk allocation planner", layout="wide")
 HERE = Path(__file__).parent
 SAMPLE_DEPTS = HERE / "sample_data" / "departments.csv"
 SAMPLE_FLOORS = HERE / "sample_data" / "floors.csv"
+
+# Uploading your own CSV files is OFF unless this setting is switched on, so a
+# copy of the app put on the web shows the fictional sample data only.
+# On your own computer, switch it on before starting the app (see README):
+#   $env:DESK_PLANNER_ALLOW_UPLOAD = "1"
+ALLOW_UPLOAD = os.environ.get("DESK_PLANNER_ALLOW_UPLOAD", "").strip().lower() in {"1", "true", "yes"}
 
 # One soft colour per department (fill, border), reused in the same order.
 PALETTE = [
@@ -74,12 +81,20 @@ def read_csv_safely(source, label: str) -> pd.DataFrame | None:
 with st.sidebar:
     st.subheader("Desk planner")
     st.markdown("**Data**")
-    source = st.selectbox("Data source", ["Sample data (fictional)", "Upload my own CSV files"])
-    using_sample = source.startswith("Sample")
+    if ALLOW_UPLOAD:
+        source = st.selectbox("Data source", ["Sample data (fictional)", "Upload my own CSV files"])
+        using_sample = source.startswith("Sample")
+    else:
+        using_sample = True
 
     raw_depts = raw_floors = None
     if using_sample:
         st.caption("Demo: all data is fictional.")
+        if not ALLOW_UPLOAD:
+            st.caption(
+                "This public version uses the fictional sample data only. To try your own "
+                "data, run the app on your own computer (see the README)."
+            )
         raw_depts = pd.read_csv(SAMPLE_DEPTS)
         raw_floors = pd.read_csv(SAMPLE_FLOORS)
     else:
@@ -102,11 +117,14 @@ with st.sidebar:
         "Download floors template", SAMPLE_FLOORS.read_bytes(),
         file_name="floors_template.csv", mime="text/csv",
     )
-    st.caption(
-        "Two small files: the people on each floor for each department (with its "
-        "approved headcount), and the desks on each floor. The templates hold the "
-        "fictional example, so replace the rows."
-    )
+    if ALLOW_UPLOAD:
+        st.caption(
+            "Two small files: the people on each floor for each department (with its "
+            "approved headcount), and the desks on each floor. The templates hold the "
+            "fictional example, so replace the rows."
+        )
+    else:
+        st.caption("These two small files are what the app reads. They are here so you can see the format.")
 
     st.markdown("**Settings**")
     tight_pct = st.slider(
